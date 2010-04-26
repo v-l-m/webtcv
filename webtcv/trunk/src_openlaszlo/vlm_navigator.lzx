@@ -1,0 +1,919 @@
+<canvas proxied="false" width="1200" height="1000" title="VLM" debug="true">
+
+<splash persistent="false">
+	<view x="10" y="120" resource="banniere_haut.jpg"/>
+</splash>
+
+<!-- GMAPS -->
+<!-- pour les tiles http://www.virtual-loup-de-mer.org/mercator.img.php?drawgrid=no&drawmap=no&drawrace=no&drawscale=no&drawpositions=no&drawlogos=no&drawlibelle=no&drawortho=no&seacolor=transparent&lat=-55.792232141228&long=126.10211312363&x=980&y=1000&maparea=6&maille=5&idraces=200982&drawtextwp=on&proj=mercator&drawwind=3 -->
+<attribute name="gmapsKey" value="ABQIAAAACqwWHz0ciwFw-D5fNPo58BQxMVlKkTFNWf14t_2BDVlonZuWnRTRLyXgUx9IFjUZm_bvZmF_uDCKsQ" type="string" />
+
+    <alert name="errorDialog" width="400" />
+
+    <script when="immediate"><![CDATA[
+        class FlashMapOL {
+            #passthrough (toplevel: true) {
+                import com.google.maps.*;
+                import com.google.maps.controls.*;
+                import com.google.maps.overlays.*;
+
+                import flash.geom.*;
+            }#
+
+            var map:Map;
+
+            function createMap() {
+                map = new Map();
+                map.addEventListener(MapEvent.MAP_READY, onMapReady);
+                map.key = canvas.gmapsKey;
+				map.setSize(new Point(450, 350));
+				
+                
+                return map;
+            }
+
+            function onMapReady(event:MapEvent):void {
+               Debug.write(canvas.LAT);
+				var latLon:LatLng = new LatLng(canvas.LAT,canvas.LON);
+                map.setCenter(latLon, 8, MapType.NORMAL_MAP_TYPE);
+				map.addControl(new ZoomControl());
+                //map.addControl(new PositionControl()); //ne marche pas mais est dans le template  ?? ...
+                //map.addControl(new MapTypeControl()); //ne marche pas mais est dans le template  ?? ...
+				var marker:Marker = new Marker(
+       			new LatLng(canvas.LAT,canvas.LON),
+       			new MarkerOptions({ fillRGB: 0x004000,
+                           name: "Paris, France",
+                           description: "La capitale de la France" }));
+				marker.addEventListener(MapMouseEvent.CLICK, function(e:MapMouseEvent):void {
+                    canvas.handleMarkerClick("<b>Contenu</b>");
+                    map.openInfoWindow(latLon, new InfoWindowOptions({titleHTML: "<b>Titre</b>", contentHTML: "<b>Contenu</b>"}));
+                });
+   				map.addOverlay(marker);
+            }
+
+            function addMarker(lat:Number, lon:Number, boat:String):void {
+                map.clearOverlays();
+                var latLon:LatLng = new LatLng(lat, lon);
+                var marker:Marker = new Marker(latLon);
+                marker.addEventListener(MapMouseEvent.CLICK, function(e:MapMouseEvent):void {
+                    canvas.handleMarkerClick(boat);
+                    map.openInfoWindow(latLon, new InfoWindowOptions({titleHTML: "<b>BOAT</b>", contentHTML: boat}));
+                });
+                map.addOverlay(marker);
+            }
+
+            function centerAndZoom(lat:Number, lon:Number):void {
+                var latLon:LatLng = new LatLng(lat, lon);
+                this.map.setCenter(latLon, 14, MapType.NORMAL_MAP_TYPE);
+            }
+
+        }
+
+        lz.mapFactory = new FlashMapOL();
+        lz.map = lz.mapFactory.createMap();
+		
+    ]]>
+    </script>
+<!-- FIN GMAPS -->	
+
+
+<script>
+
+function angle_oppose(val) 
+	{
+	var val2=val + 180;
+	if(val2>360) { val2=val2 - 360; }
+	return val2;
+	}
+</script>
+
+<debug x="0" y="700" width="200" height="100"/>
+
+<bluestyle name="defaultstyle" isdefault="true"/>
+<greenstyle name="actif"/>
+  
+<attribute name="texte_bandeau" value="" type="string" />
+<attribute name="titre_carte" value="" type="string" />
+
+<attribute name="url_recupinfos" value="http://caraibes.hd.free.fr:8000/vlm/xml/get_boat.php" type="string" />
+
+<attribute name="zoom_carte" value="" type="string" />
+<attribute name="url_carte" value="" type="string" />
+<attribute name="url_carte00" value="" type="string" />
+<attribute name="url_carte01" value="" type="string" />
+<attribute name="url_carte02" value="" type="string" />
+<attribute name="url_carte03" value="" type="string" />
+<attribute name="url_carte04" value="" type="string" />
+<attribute name="url_carte05" value="" type="string" />
+<attribute name="url_carte06" value="" type="string" />
+<attribute name="url_carte12" value="" type="string" />
+<attribute name="url_carte18" value="" type="string" />
+<attribute name="url_carte24" value="" type="string" />
+<attribute name="url_carte30" value="" type="string" />
+<attribute name="url_carte36" value="" type="string" />
+<attribute name="url_carte42" value="" type="string" />
+<attribute name="url_carte48" value="" type="string" />
+
+<attribute name="url_gps" value="" type="string" />
+<attribute name="url_wind_angle" value="" type="string" />
+<attribute name="url_anemo" value="" type="string" />
+
+<attribute name="style_pim1" value="defaultstyle" type="string" />
+<attribute name="style_pim2" value="defaultstyle" type="string" />
+<attribute name="style_pim3" value="defaultstyle" type="string" />
+<attribute name="style_pim4" value="actif" type="string" />
+<attribute name="style_pim5" value="defaultstyle" type="string" />
+
+<attribute name="IDU" value="" type="string" /> <!-- numéro utilisateur -->
+<attribute name="IDB" value="" type="string"/> <!-- pseudo utilisateur -->
+<attribute name="EML" value="" type="string"/> <!-- email utilisateur -->
+<attribute name="COL" value="" type="string"/>
+<attribute name="CNT" value="" type="string"/>
+<attribute name="PAVILLON" value="" type="string"/>
+<attribute name="POL" value="" type="string"/> <!-- polaire (type boat) -->
+<attribute name="RAC" value="" type="string"/>
+<attribute name="RAN" value="" type="string"/>
+<attribute name="LAT" value="" type="string"/>
+<attribute name="LON" value="" type="string"/>
+<attribute name="GPS_LAT" value="" type="string"/>
+<attribute name="GPS_LON" value="" type="string"/>
+<attribute name="BSP" value="" type="string"/>
+<attribute name="HDG" value="" type="string"/> <!-- cap -->
+<attribute name="NWP" value="" type="string"/>
+<attribute name="DNM" value="" type="string"/>
+<attribute name="ORT" value="" type="string"/>
+<attribute name="LOX" value="" type="string"/>
+<attribute name="VMG" value="" type="string"/>
+<attribute name="ETA" value="" type="string"/>
+<attribute name="TWD" value="" type="string"/>
+<attribute name="VTWD" value="" type="string"/>
+<attribute name="TWS" value="" type="string"/>
+<attribute name="TWA" value="" type="string"/>
+<attribute name="VTWA" value="" type="string"/>
+<attribute name="PIM" value="" type="string"/>
+<attribute name="PIP" value="" type="string"/>
+<attribute name="POS" value="" type="string"/>
+<attribute name="LOC" value="" type="string"/>
+<attribute name="LUP" value="" type="string"/>
+<attribute name="NUP" value="" type="string"/>
+<attribute name="AVG" value="" type="string"/>
+<attribute name="WPLAT" value="" type="string"/>
+<attribute name="WPLON" value="" type="string"/>
+<attribute name="H_at_WP" value="" type="string"/>
+<attribute name="MAG" value="" type="string"/> <!-- age de la trace -->
+<attribute name="MAR" value="" type="string"/> <!-- zoom de la carte -->
+<attribute name="MCR" value="" type="string"/>
+<attribute name="MES" value="" type="string"/>
+<attribute name="MLY" value="" type="string"/>
+<attribute name="MGD" value="" type="string"/>
+<attribute name="MOP" value="" type="string"/>
+<attribute name="MOP_VALUE" value="" type="string"/>
+<attribute name="MPO" value="" type="string"/>
+<attribute name="MTL" value="" type="string"/>
+<attribute name="MWD" value="" type="string"/>
+<attribute name="MHT" value="" type="string"/>
+<attribute name="SRV" value="" type="string"/>
+<attribute name="NPD" value="" type="string"/>
+<attribute name="PIL1" value="" type="string"/>
+<attribute name="PIL2" value="" type="string"/>
+<attribute name="PIL3" value="" type="string"/>
+<attribute name="PIL4" value="" type="string"/>
+<attribute name="PIL5" value="" type="string"/>
+<attribute name="THM" value="" type="string"/>
+<attribute name="HID" value="" type="string"/>
+<attribute name="VAC" value="" type="string"/>
+<attribute name="password" value="" type="string"/>
+
+<dataset name="myData" request="true" src="http://caraibes.hd.free.fr:8000/vlm/xml/get_boat.php"/>
+<dataset name="send_action" src="http://caraibes.hd.free.fr:8000/vlm/xml/actions_vlm.php" type="http" autorequest="false" />
+<dataset name="request_map" src="http://caraibes.hd.free.fr:8000/vlm/xml/get_map.php" type="http" autorequest="false" />
+
+<datapointer name="xmlpoint" xpath="myData:/myXML/boat" ondata="processData()">
+	<method name="processData">
+		<!-- <![CDATA[ -->
+		canvas.setAttribute('url_recupinfos','http://caraibes.hd.free.fr:8000/vlm/xml/get_boat.php');
+		var IDU =xmlpoint.xpathQuery('IDU/text()');
+		canvas.setAttribute('IDU',IDU);
+		var IDB =xmlpoint.xpathQuery('IDB/text()');
+		canvas.setAttribute('IDB',IDB);
+		var EML =xmlpoint.xpathQuery('EML/text()');
+		canvas.setAttribute('EML',EML);
+		var COL =xmlpoint.xpathQuery('COL/text()');
+		canvas.setAttribute('COL',COL);
+		var CNT =xmlpoint.xpathQuery('CNT/text()');
+		canvas.setAttribute('CNT',CNT);
+		canvas.setAttribute('PAVILLON', 'http://www.virtual-loup-de-mer.org/flagimg.php?idflags=' + CNT );
+		var POL =xmlpoint.xpathQuery('POL/text()');
+		canvas.setAttribute('POL',POL);
+		var RAC =xmlpoint.xpathQuery('RAC/text()');
+		canvas.setAttribute('RAC',RAC);
+		var RAN =xmlpoint.xpathQuery('RAN/text()');
+		canvas.setAttribute('RAN',RAN);
+		var LAT =xmlpoint.xpathQuery('LAT/text()')/1000;
+		canvas.setAttribute('LAT',LAT);
+		var LON =xmlpoint.xpathQuery('LON/text()')/1000;
+		canvas.setAttribute('LON',LON);
+		var GPS_LAT =xmlpoint.xpathQuery('LAT/text()');
+		canvas.setAttribute('GPS_LAT',GPS_LAT);
+		var GPS_LON =xmlpoint.xpathQuery('LON/text()');
+		canvas.setAttribute('GPS_LON',GPS_LON);
+		var BSP =xmlpoint.xpathQuery('BSP/text()');
+		canvas.setAttribute('BSP',BSP);
+		var HDG =xmlpoint.xpathQuery('HDG/text()');
+		canvas.setAttribute('HDG',HDG);
+		var NWP =xmlpoint.xpathQuery('NWP/text()');
+		canvas.setAttribute('NWP',NWP);
+		var DNM =xmlpoint.xpathQuery('DNM/text()');
+		canvas.setAttribute('DNM',DNM);
+		var ORT =xmlpoint.xpathQuery('ORT/text()');
+		canvas.setAttribute('ORT',ORT);
+		var LOX =xmlpoint.xpathQuery('LOX/text()');
+		canvas.setAttribute('LOX',LOX);
+		var VMG =xmlpoint.xpathQuery('VMG/text()');
+		canvas.setAttribute('VMG',VMG);
+		var ETA =xmlpoint.xpathQuery('ETA/text()');
+		canvas.setAttribute('ETA',ETA);
+		var TWD =xmlpoint.xpathQuery('TWD/text()');
+		canvas.setAttribute('TWD',TWD);
+		var VTWD =xmlpoint.xpathQuery('VTWD/text()');
+		canvas.setAttribute('VTWD',VTWD);
+		Debug.write('VTWD='+VTWD);
+		var TWS =xmlpoint.xpathQuery('TWS/text()');
+		canvas.setAttribute('TWS',TWS);
+		var TWA =xmlpoint.xpathQuery('TWA/text()');
+		canvas.setAttribute('TWA',TWA);
+		Debug.write('TWA='+TWA);
+		
+		var PIM =xmlpoint.xpathQuery('PIM/text()');
+		var MODE ='';
+		if(PIM == '1') { MODE = '&lt;font color="#ff0000"&gt;Cap fixe&lt;/font&gt;'; }
+		if(PIM == '2') { MODE = '&lt;font color="#ff0000"&gt;Angle fixe&lt;/font&gt;'; }
+		if(PIM == '3') { MODE = '&lt;font color="#ff0000"&gt;Cap ortho&lt;/font&gt;'; }
+		if(PIM == '4') { MODE = '&lt;font color="#ff0000"&gt;Best VMG&lt;/font&gt;'; }
+		if(PIM == '5') { MODE = '&lt;font color="#ff0000"&gt;VBVMG&lt;/font&gt;'; }
+		canvas.setAttribute('PIM',PIM);
+		
+		var PIP =xmlpoint.xpathQuery('PIP/text()');
+		canvas.setAttribute('PIP',PIP);
+		Debug.write('PIP='+PIP);
+		var POS =xmlpoint.xpathQuery('POS/text()');
+		canvas.setAttribute('POS',POS);
+		var LOC =xmlpoint.xpathQuery('LOC/text()');
+		canvas.setAttribute('LOC',LOC);
+		var LUP =xmlpoint.xpathQuery('LUP/text()');
+		canvas.setAttribute('LUP',LUP);
+		var NUP =xmlpoint.xpathQuery('NUP/text()');
+		canvas.setAttribute('NUP',NUP);
+		var AVG =xmlpoint.xpathQuery('AVG/text()');
+		canvas.setAttribute('AVG',AVG);
+		var WPLAT =xmlpoint.xpathQuery('WPLAT/text()');
+		canvas.setAttribute('WPLAT',WPLAT);
+		var WPLON =xmlpoint.xpathQuery('WPLON/text()');
+		canvas.setAttribute('WPLON',WPLON);
+		var H_at_WP =xmlpoint.xpathQuery('H_at_WP/text()');
+		canvas.setAttribute('H_at_WP',H_at_WP);
+		var MAG =xmlpoint.xpathQuery('MAG/text()');
+		canvas.setAttribute('MAG',MAG);
+		var MAR =xmlpoint.xpathQuery('MAR/text()');
+		canvas.setAttribute('MAR',MAR);
+		var MCR =xmlpoint.xpathQuery('MCR/text()');
+		canvas.setAttribute('MCR',MCR);
+		var MES =xmlpoint.xpathQuery('MES/text()');
+		canvas.setAttribute('MES',MES);
+		var MLY =xmlpoint.xpathQuery('MLY/text()');
+		canvas.setAttribute('MLY',MLY);
+		var MGD =xmlpoint.xpathQuery('MGD/text()');
+		canvas.setAttribute('MGD',MGD);
+		
+		var MOP =xmlpoint.xpathQuery('MOP/text()');
+		canvas.setAttribute('MOP',MOP);
+		if(MOP=='myboat') { canvas.setAttribute('MOP_VALUE','0'); }
+		if(MOP=='my5opps') { canvas.setAttribute('MOP_VALUE','1'); }
+		if(MOP=='my10opps') { canvas.setAttribute('MOP_VALUE','2'); }
+		if(MOP=='meandtop10') { canvas.setAttribute('MOP_VALUE','3'); }
+		if(MOP=='mylist') { canvas.setAttribute('MOP_VALUE','4'); }
+		if(MOP=='all') { canvas.setAttribute('MOP_VALUE','5'); }
+		if(MOP=='') { canvas.setAttribute('MOP_VALUE','0'); }
+		
+		var MPO =xmlpoint.xpathQuery('MPO/text()');
+		canvas.setAttribute('MPO',MPO);
+		var MTL =xmlpoint.xpathQuery('MTL/text()');
+		canvas.setAttribute('MTL',MTL);
+		var MWD =xmlpoint.xpathQuery('MWD/text()');
+		canvas.setAttribute('MWD',MWD);
+		var MHT =xmlpoint.xpathQuery('MHT/text()');
+		canvas.setAttribute('MHT',MHT);
+		var SRV =xmlpoint.xpathQuery('SRV/text()');
+		canvas.setAttribute('SRV',SRV);
+		var NPD =xmlpoint.xpathQuery('NPD/text()');
+		canvas.setAttribute('NPD',NPD);
+		var PIL1 =xmlpoint.xpathQuery('PIL1/text()');
+		canvas.setAttribute('PIL1',PIL1);
+		var PIL2 =xmlpoint.xpathQuery('PIL2/text()');
+		canvas.setAttribute('PIL2',PIL2);
+		var PIL3 =xmlpoint.xpathQuery('PIL3/text()');
+		canvas.setAttribute('PIL3',PIL3);
+		var PIL4 =xmlpoint.xpathQuery('PIL4/text()');
+		canvas.setAttribute('PIL4',PIL4);
+		var PIL5 =xmlpoint.xpathQuery('PIL5/text()');
+		canvas.setAttribute('PIL5',PIL5);
+		var THM =xmlpoint.xpathQuery('THM/text()');
+		canvas.setAttribute('THM',THM);
+		var HID =xmlpoint.xpathQuery('HID/text()');
+		canvas.setAttribute('HID',HID);
+		var VAC =xmlpoint.xpathQuery('VAC/text()');
+		canvas.setAttribute('VAC',VAC);
+		var VTWA =xmlpoint.xpathQuery('VTWA/text()');
+		canvas.setAttribute('VTWA',VTWA);
+		Debug.write('VTWA='+VTWA);
+		var password =xmlpoint.xpathQuery('password/text()');
+		canvas.setAttribute('password',password);
+		
+		<!-- Texte du bandeau -->
+		var texte_bandeau = '&lt;b&gt;' + IDB + ' - ' + RAN + ' - Classement : ' + POS + ' - ' + MODE + '&lt;/b&gt;';
+		canvas.setAttribute('texte_bandeau',texte_bandeau);
+		
+		<!-- Titre carte -->
+		var titre_carte = '&lt;b&gt;' + IDB + '&lt;/b&gt; - Speed : &lt;b&gt;' + BSP + '&lt;/b&gt; - Heading : &lt;b&gt;' + HDG + '&lt;/b&gt; - Prochaine vacation : ' + NUP + ' sec';
+		canvas.setAttribute('titre_carte',titre_carte);
+		
+		<!-- séparateur + espaces instruments ... -->
+		var sep = '&amp;';
+		var esp = '%20%20%20%20%20%20%20%20';
+		
+		<!-- constantes pour la carte -->
+		var urlbase_carte = 'http://tcv.virtual-loup-de-mer.org/mercator.img.php?'
+		+ 'idraces=' + RAC + sep
+		+ 'lat=' + LAT + sep
+		+ 'long=' + LON + sep
+		+ 'x=980' + sep
+		+ 'y=1000' + sep
+		+ 'maptype=simple' + sep
+		+ 'maparea=' + MAR + sep
+		+ 'drawortho=yes' + sep
+		+ 'maille=' + MGD + sep
+		+ 'proj=mercator' + sep
+		+ 'seacolor=ffffff' + sep
+		+ 'tracks=on' + sep
+		+ 'age=' + MAG + sep
+		+ 'estime=' + MES +  sep
+		+ 'list=' + MOP + sep
+		+ 'boat=' + IDU + sep
+		+ 'text=right' + sep
+		+ 'save=on' + sep;
+
+		<!-- carte temps 0 -->
+		var newurl_carte00 = urlbase_carte + 'drawwind=0';
+		canvas.setAttribute('url_carte',newurl_carte00);
+		canvas.setAttribute('url_carte00',newurl_carte00);
+	  	
+		<!-- carte temps 1 -->
+		var newurl_carte01 = urlbase_carte + 'drawwind=1';
+		canvas.setAttribute('url_carte01',newurl_carte01);
+	  	
+		<!-- carte temps 2 -->
+		var newurl_carte02 = urlbase_carte + 'drawwind=2';
+		canvas.setAttribute('url_carte02',newurl_carte02);
+	  	
+		<!-- carte temps 3 -->
+		var newurl_carte03 = urlbase_carte + 'drawwind=3';
+		canvas.setAttribute('url_carte03',newurl_carte03);
+	  	
+		<!-- carte temps 4 -->
+		var newurl_carte04 = urlbase_carte + 'drawwind=4';
+		canvas.setAttribute('url_carte04',newurl_carte04);
+	  	
+		<!-- carte temps 5 -->
+		var newurl_carte05 = urlbase_carte + 'drawwind=5';
+		canvas.setAttribute('url_carte05',newurl_carte05);
+	  	
+		<!-- carte temps 6 -->
+		var newurl_carte06 = urlbase_carte + 'drawwind=6';
+		canvas.setAttribute('url_carte06',newurl_carte06);
+	  	
+		<!-- carte temps 12 -->
+		var newurl_carte12 = urlbase_carte + 'drawwind=12';
+		canvas.setAttribute('url_carte12',newurl_carte12);
+	  	//Debug.write(newurl_carte12);
+		
+		<!-- carte temps 18 -->
+		var newurl_carte18 = urlbase_carte + 'drawwind=18';
+		canvas.setAttribute('url_carte18',newurl_carte18);
+	  	//Debug.write(newurl_carte18);
+		
+		<!-- carte temps 24 -->
+		var newurl_carte24 = urlbase_carte + 'drawwind=24';
+		canvas.setAttribute('url_carte24',newurl_carte24);
+	  	//Debug.write(newurl_carte24);
+		
+		<!-- carte temps 30 -->
+		var newurl_carte30 = urlbase_carte + 'drawwind=30';
+		canvas.setAttribute('url_carte30',newurl_carte30);
+	  	//Debug.write(newurl_carte30);
+		
+		<!-- carte temps 36 -->
+		var newurl_carte36 = urlbase_carte + 'drawwind=36';
+		canvas.setAttribute('url_carte36',newurl_carte36);
+	  	//Debug.write(newurl_carte36);
+		
+		<!-- carte temps 42 -->
+		var newurl_carte42 = urlbase_carte + 'drawwind=42';
+		canvas.setAttribute('url_carte42',newurl_carte42);
+	  	//Debug.write(newurl_carte42);
+		
+		<!-- carte temps 48 -->
+		var newurl_carte48 = urlbase_carte + 'drawwind=48';
+		canvas.setAttribute('url_carte48',newurl_carte48);
+	  	//Debug.write(newurl_carte48);
+		
+		<!-- GPS -->
+		var urlbase_gps = 'http://www.virtual-loup-de-mer.org/gps.php?';
+		var newurl_gps = urlbase_gps + esp
+		+ 'latitude=' + GPS_LAT + sep + esp
+		+ 'longitude=' + GPS_LON + sep + esp
+		+ 'speed=' + BSP + sep + esp
+		+ 'cap=' + (Math.round(HDG*10)/10) + sep + esp
+		+ 'dnm=' + DNM + sep + esp
+		+ 'cnmo=' + (Math.round(ORT*10)/10) + sep + esp
+		+ 'cnml=' + (Math.round(LOX*10)/10) + sep + esp
+		+ 'vmg=' + VMG + sep + esp
+		+ 'loch=' + (Math.round(LOC*10)/10) + sep + esp
+		+ 'avg=' + AVG;
+		canvas.setAttribute('url_gps',newurl_gps);
+	  	//Debug.write(newurl_gps);
+		
+		<!-- WIND ANGLE -->
+		var urlbase_wind_angle = 'http://www.virtual-loup-de-mer.org/windangle.php?';
+		var newurl_wind_angle = urlbase_wind_angle + esp
+		+ 'wheading=' + VTWD + sep + esp
+		+ 'boatheading=' + HDG + sep + esp
+		+ 'wspeed=' + TWS + sep + esp
+		+ 'roadtoend=' + ORT + sep + esp
+		+ 'boattype=' + POL;
+		canvas.setAttribute('url_wind_angle',newurl_wind_angle);
+	  	//Debug.write(newurl_wind_angle);
+		
+		<!-- ANEMO -->
+		var urlbase_anemo = 'http://www.virtual-loup-de-mer.org/anemo.php?';
+		var newurl_anemo = urlbase_anemo + esp
+		+ 'twd=' + (Math.round(TWD*10)/10) + sep + esp
+		+ 'tws=' + (Math.round(TWS*10)/10) + sep + esp
+		+ 'cap=' + (Math.round(HDG*10)/10);
+		canvas.setAttribute('url_anemo',newurl_anemo);
+		
+		lz.mapFactory.centerAndZoom(canvas.LAT,canvas.LON);
+		lz.mapFactory.addMarker(canvas.LAT,canvas.LON, "111")
+	  	//Debug.write(newurl_anemo);
+		<!-- ]]> -->
+	</method>
+</datapointer>
+
+
+
+<!-- AFFICHAGE -->
+<!-- VUE PRINCIPALE -->
+<view x="0" y="0" width="1200" height="1000">
+
+<!-- FOND -->
+<view  width="1200" height="1000" stretches="both" resource="http:water010.jpg" options="ignorelayout" opacity="0.7"/>
+	
+	<!-- BANDEAU -->
+	<view opacity="0.8" x="0" y="0" stretches="both" width="800" height="80" resource="http:banniere_haut.jpg"/>
+	
+	<!-- texte du bandeau -->
+	<view x="0" y="60" width="1200" resource="${ canvas.PAVILLON }"/>
+	<view x="30" y="60" bgcolor="#C0CDFA" width="1200" opacity="0.5">
+	<simplelayout axis="x" spacing="0"/>
+	<text text="  "/>
+	<text text="${canvas.texte_bandeau}"/>
+	<text text="  "/>
+	<!-- bouton rafraichissement -->
+	<button text="Recup infos" width="80" height="20" onclick="refresh_mydata()">
+		<method name="refresh_mydata">
+			canvas.datasets.myData.setQueryString({maj:  'ok'});
+			canvas.datasets.myData.doRequest();
+		</method>
+	</button>
+	</view>
+	
+	<!-- CARTE -->
+	<window  x="225" y="80" width="800" height="700" title="${canvas.titre_carte}" resizable="true">
+	<menubar name="mbar" placement="menubar" text="previsions">
+		<button text="Prévisions" bgcolor="#D2AC82" width="65"/>
+		<button text="00" onclick="changecarte00()" width="30">
+				<attribute name="attribbt00" value="${canvas.url_carte00}" type="string" />
+				<method name="changecarte00">
+				canvas.setAttribute('url_carte',this.attribbt00);
+				Debug.write(this.attribbt00);
+				</method>
+			</button>
+			<button text="+01" onclick="changecarte01()" width="30">
+				<attribute name="attribbt01" value="${canvas.url_carte01}" type="string" />
+				<method name="changecarte01">
+				canvas.setAttribute('url_carte',this.attribbt01);
+				Debug.write(this.attribbt01);
+				</method>
+			</button>
+			<button text="+02" onclick="changecarte02()" width="30">
+				<attribute name="attribbt02" value="${canvas.url_carte02}" type="string" />
+				<method name="changecarte02">
+				canvas.setAttribute('url_carte',this.attribbt02);
+				Debug.write(this.attribbt02);
+				</method>
+			</button>
+			<button text="+03" onclick="changecarte03()" width="30">
+				<attribute name="attribbt03" value="${canvas.url_carte03}" type="string" />
+				<method name="changecarte03">
+				canvas.setAttribute('url_carte',this.attribbt03);
+				Debug.write(this.attribbt03);
+				</method>
+			</button>
+			<button text="+04" onclick="changecarte04()" width="30">
+				<attribute name="attribbt04" value="${canvas.url_carte04}" type="string" />
+				<method name="changecarte04">
+				canvas.setAttribute('url_carte',this.attribbt04);
+				Debug.write(this.attribbt04);
+				</method>
+			</button>
+			<button text="+05" onclick="changecarte05()" width="30">
+				<attribute name="attribbt05" value="${canvas.url_carte05}" type="string" />
+				<method name="changecarte05">
+				canvas.setAttribute('url_carte',this.attribbt05);
+				Debug.write(this.attribbt05);
+				</method>
+			</button>
+			<button text="+06" onclick="changecarte06()" width="30">
+				<attribute name="attribbt06" value="${canvas.url_carte06}" type="string" />
+				<method name="changecarte06">
+				canvas.setAttribute('url_carte',this.attribbt06);
+				Debug.write(this.attribbt06);
+				</method>
+			</button>
+			<button text="+12" onclick="changecarte12()" width="30">
+				<attribute name="attribbt12" value="${canvas.url_carte12}" type="string" />
+				<method name="changecarte12">
+				canvas.setAttribute('url_carte',this.attribbt12);
+				Debug.write(this.attribbt12);
+				</method>
+			</button>
+			<button text="+18" onclick="changecarte18()" width="30">
+				<attribute name="attribbt18" value="${canvas.url_carte18}" type="string" />
+				<method name="changecarte18">
+				canvas.setAttribute('url_carte',this.attribbt18);
+				Debug.write(this.attribbt18);
+				</method>
+			</button>
+			<button text="+24" onclick="changecarte24()" width="30">
+				<attribute name="attribbt24" value="${canvas.url_carte24}" type="string" />
+				<method name="changecarte24">
+				canvas.setAttribute('url_carte',this.attribbt24);
+				Debug.write(this.attribbt24);
+				</method>
+			</button>
+			<button text="+30" onclick="changecarte30()" width="30">
+				<attribute name="attribbt30" value="${canvas.url_carte30}" type="string" />
+				<method name="changecarte30">
+				canvas.setAttribute('url_carte',this.attribbt30);
+				Debug.write(this.attribbt30);
+				</method>
+			</button>
+			<button text="+36" onclick="changecarte36()" width="30">
+				<attribute name="attribbt36" value="${canvas.url_carte36}" type="string" />
+				<method name="changecarte36">
+				canvas.setAttribute('url_carte',this.attribbt36);
+				Debug.write(this.attribbt36);
+				</method>
+			</button>
+			<button text="+42" onclick="changecarte42()" width="30">
+				<attribute name="attribbt42" value="${canvas.url_carte42}" type="string" />
+				<method name="changecarte42">
+				canvas.setAttribute('url_carte',this.attribbt42);
+				Debug.write(this.attribbt42);
+				</method>
+			</button>
+			<button text="+48" onclick="changecarte48()" width="30">
+				<attribute name="attribbt48" value="${canvas.url_carte48}" type="string" />
+				<method name="changecarte48">
+				canvas.setAttribute('url_carte',this.attribbt48);
+				Debug.write(this.attribbt48);
+				</method>
+			</button>
+			
+	</menubar>
+	<view x="0" y="0" resource="${canvas.url_carte}" align="center" valign="middle"/>
+		<scrollbar axis="y"/>
+		<scrollbar axis="x"/>
+	</window>
+	
+
+	<!-- FENETRE GMAPS -->
+	<window x="224" y="79" name="mapWin" title="Map" width="468" height="369" allowdrag="true">
+        <passthrough>
+            import flash.display.*;
+        </passthrough>
+        <handler name="oninit">
+            var sprite:Sprite = this.content.sprite;
+            sprite.addChildAt(lz.map, sprite.numChildren);
+        </handler>
+
+    </window>
+	<!-- FENETRE GMAPS -->
+	
+	<!-- FENETRE DU NAVIGATEUR -->
+	<!-- <window x="5" y="80" width="200" height="660" title="Navigateur" resizable="true"  bgcolor="#C0CDFA"> -->
+	<view x="5" y="80" width="220" height="800" opacity="0.9">
+	<tabs>
+		<tabpane bgcolor="#C0CDFA">Instr
+			<simplelayout axis="y" spacing="0"/>
+			<view  width="200" height="204" stretches="both" resource="${canvas.url_gps}"/>
+			<view  width="200" height="204" stretches="both" resource="${canvas.url_wind_angle}"/>
+			<view  width="200" height="204" stretches="both" resource="${canvas.url_anemo}"/>
+		</tabpane>
+		<tabpane bgcolor="#C0CDFA">Infos
+
+			<!-- EDITION DU CAP PIM=1 -->
+			<text x="0" y="0"><b>Cap fixe</b></text>
+			<text x="0" y="20">Cap :</text>
+			<edittext id="cap" name="cap" text="${ canvas.HDG }" x="40" y="20" width="50" height="20" />
+			<button x="90" y="20" width="70" height="20" text="Cap fixe" onclick="change_cap()">
+				<method name="change_cap">
+				var p=new LzParam();
+				var new_cap = cap.getText();
+				p.addValue("boatheading",new_cap,true);
+				p.addValue("event","pim1");
+				canvas.datasets.send_action.setQueryString(p);
+				canvas.datasets.send_action.doRequest();
+				canvas.datasets.myData.setQueryString({maj:  'ok'});
+				canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			
+			<!-- EDITION DE L'ANGLE PIM=2 -->
+			<text x="0" y="55"><b>Régulateur d'allure</b></text>
+			<text x="0" y="75">Angle :</text>
+			<edittext id="angle" name="angle" text="${ canvas.VTWA }" x="40" y="75" width="70" height="20" />
+			
+			<button x="110" y="75" width="70" height="20" text="Angle fixe" onclick="change_angle()">
+				<method name="change_angle">
+					var p=new LzParam();
+					var new_angle = angle.getText();
+					p.addValue("pilotparameter",new_angle,true);
+					p.addValue("event","pim2");
+					canvas.datasets.send_action.setQueryString(p);
+					canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+					canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			<button x="10" y="95" width="100" height="20" text="Virer/Empanner" onclick="change_signe()">
+				<method name="change_signe">
+					var val_angle = angle.getText() * -1;
+					angle.setAttribute('text',val_angle);
+					canvas.setAttribute('VTWA',val_angle);
+					Debug.write('val_angle=' + val_angle);
+					var p=new LzParam();
+					var new_angle = val_angle;
+					p.addValue("pilotparameter",new_angle,true);
+					p.addValue("event","pim2");
+					canvas.datasets.send_action.setQueryString(p);
+					canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+					canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			
+			<!-- EDITION DU WP -->
+			<text x="0" y="125"><b>Mon WP</b></text>
+			<text x="0" y="145">Lat :</text>
+			<edittext id="wp_lat" name="wp_lat" text="${ canvas.WPLAT }" x="45" y="145" width="70" height="20" />
+			<text x="0" y="165">Lon :</text>
+			<edittext id="wp_lon" name="wp_lon" text="${ canvas.WPLON }" x="45" y="165" width="70" height="20" />
+			<text x="0" y="185">@wp :</text>
+			<edittext id="at_wp" name="at_wp" text="${ canvas.H_at_WP }" x="45" y="185" width="70" height="20" />
+			
+			<button x="45" y="205" width="70" height="20" text="Sauver" onclick="change_wp()">
+				<method name="change_wp">
+					<![CDATA[
+					var p=new LzParam();
+					var andhdg = 'off';
+					p.addValue("andhdg",andhdg,true);
+					var targetlat = wp_lat.getText();
+					p.addValue("targetlat",targetlat,true);
+					var targetlon = wp_lon.getText();
+					p.addValue("targetlon",targetlon,true);
+					var targetandhdg = at_wp.getText();
+					p.addValue("targetandhdg",targetandhdg,true);
+					p.addValue("event","monwp");
+					canvas.datasets.send_action.setQueryString(p);
+					canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+					canvas.datasets.myData.doRequest();
+					]]>
+				</method>
+			</button>
+			
+			<!-- PASSAGE EN PILOTE ORTHO PIM=3 -->
+			<text x="0" y="230"><b>Pilote Orthodromique</b></text>
+			<button x="40" y="250" width="80" height="20" text="Pilote ORTHO" onclick="pip_ortho()" fgcolor="red">
+				<method name="pip_ortho">
+					var p=new LzParam();
+					p.addValue("maj","ok",true);
+					p.addValue("event","pim3");
+					canvas.datasets.send_action.setQueryString(p);
+					canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+				canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			
+			<!-- PASSAGE BEST VMG PIM=4 -->
+			<text x="0" y="280"><b>Meilleure VMG</b></text>
+			<button id="btpim4" name="btpim4" x="40" y="300" width="80" height="20" text="Best VMG" onclick="pip_vmg()">
+			<attribute name="PIM" value="defaultstyle"/>
+			<attribute name="style" value="defaultstyle"/> <!-- defaultstyle ou actif -->
+				<handler name="oninit">
+					if(this.PIM == '4') 
+					{ this.setAttribute('style','actif'); }
+				</handler>
+				<method name="pip_vmg">
+					var p=new LzParam();
+					p.addValue("maj","ok",true);
+					p.addValue("event","pim4");
+					canvas.datasets.send_action.setQueryString(p);
+					canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+					canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			
+			<!-- PASSAGE VBVMG PIM=5 -->
+			<text x="0" y="330"><b>VBVMG</b></text>
+			<button style="defaultstyle" x="40" y="350" width="80" height="20" text="VBVMG" onclick="pip_vbvmg()">
+				<method name="pip_vbvmg">
+					var p=new LzParam();
+					p.addValue("maj","ok",true);
+					p.addValue("event","pim5");
+					canvas.datasets.send_action.setQueryString(p);
+					canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+					canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			
+		</tabpane>
+		
+		<tabpane bgcolor="#C0CDFA">Météo
+			<!-- MISE A JOUR DES PREFERENCES DE CARTE -->
+			<text x="0" y="0">Zoom :</text>
+			<edittext id="txt_maparea" name="txt_maparea" text="${ canvas.MAR }" x="90" y="0" width="70" height="20" />
+			<text x="0" y="20">Maille vent :</text>
+			<edittext id="txt_maille" name="txt_maille" text="${ canvas.MGD }" x="90" y="20" width="70" height="20" />
+			<text x="0" y="40">Estime (nm) :</text>
+			<edittext id="txt_estime" name="txt_estime" text="${ canvas.MES }" x="90" y="40" width="70" height="20" />
+			<text x="0" y="60">Age traces (h):</text>
+			<edittext id="txt_age" name="txt_age" text="${ canvas.MAG }" x="90" y="60" width="70" height="20" />
+			<text x="0" y="80">Bateaux affichés:</text>
+                <combobox id="id_listopps" name="listopps" x="0" y="100" width="180" editable="false">
+				<attribute name="defaultselection" value="${canvas.MOP_VALUE}"/>
+                    <textlistitem value="0" text="seulement le mien" />
+                    <textlistitem value="1" text="le mien &amp; mes 5 voisins" />
+                    <textlistitem value="2" text="le mien &amp; mes 10 voisins" />
+                    <textlistitem value="3" text="le mien &amp; le Top 10"/>
+                    <textlistitem value="4" text="ma sélection" />
+					<textlistitem value="5" text="tous" />
+					<!--
+						<handler name="oninit">
+							Debug.write(id_listopps.getValue());
+						</handler>
+					-->
+                </combobox>
+			
+			
+			<!-- BOUTON DE MISE A JOUR DES PREFERENCES DE CARTE -->
+			<button x="0" y="130" text="Sauver" onclick="submitprefscarte()" bgcolor="#D2AC82">
+				<attribute name="lat" value="${canvas.LAT}" type="string" />
+				<attribute name="long" value="${canvas.LON}" type="string" />
+				<attribute name="latwp" value="${canvas.WPLAT}" type="string" />
+				<attribute name="longwp" value="${canvas.WPLON}" type="string" />
+				<attribute name="idraces" value="${canvas.RAC}" type="string" />
+				<attribute name="boat" value="${canvas.IDU}" type="string" />
+				<method name="submitprefscarte">
+					var p=new LzParam();
+					var lat = this.lat;
+					p.addValue("lat",lat,true);
+					var long = this.long;
+					p.addValue("long",long,true);
+					var latwp = this.latwp;
+					p.addValue("latwp",latwp,true);
+					var longwp = this.longwp;
+					p.addValue("longwp",longwp,true);
+					var idraces = this.idraces;
+					p.addValue("idraces",idraces,true);
+					var boat = this.boat;
+					p.addValue("boat",boat,true);
+					
+					var maparea = txt_maparea.getText();
+					p.addValue("maparea",maparea,true);
+					var maille = txt_maille.getText();
+					p.addValue("maille",maille,true);
+					var estime = txt_estime.getText();
+					p.addValue("estime",estime,true);
+					var age = txt_age.getText();
+					p.addValue("age",age,true);
+					
+					if(id_listopps.getValue()=='0') { p.addValue("list","myboat",true); }
+					if(id_listopps.getValue()=='1') { p.addValue("list","my5opps",true); }
+					if(id_listopps.getValue()=='2') { p.addValue("list","my10opps",true); }
+					if(id_listopps.getValue()=='3') { p.addValue("list","meandtop10",true); }
+					if(id_listopps.getValue()=='4') { p.addValue("list","mylist",true); }
+					if(id_listopps.getValue()=='5') { p.addValue("list","all",true); }
+					
+					p.addValue("event","prefsmap",true);
+					
+					canvas.datasets.request_map.setQueryString(p);
+					canvas.datasets.request_map.doRequest();
+					//canvas.datasets.send_action.setQueryString(p);
+					//canvas.datasets.send_action.doRequest();
+					canvas.datasets.myData.setQueryString({maj:  'ok'});
+					canvas.datasets.myData.doRequest();
+				</method>
+			</button>
+			
+			<view x="90" y="170">
+			<simplelayout axis="y" spacing="0"/>
+			<button text="+ 00" onclick="changecarte00()" bgcolor="#D2AC82" width="20">
+				<attribute name="attribbt00" value="${canvas.url_carte00}" type="string" />
+				<method name="changecarte00">
+				canvas.setAttribute('url_carte',this.attribbt00);
+				Debug.write(this.attribbt00);
+				</method>
+			</button>
+			<button text="+ 06" onclick="changecarte06()">
+				<attribute name="attribbt06" value="${canvas.url_carte06}" type="string" />
+				<method name="changecarte06">
+				canvas.setAttribute('url_carte',this.attribbt06);
+				Debug.write(this.attribbt06);
+				</method>
+			</button>
+			<button text="+ 12" onclick="changecarte12()">
+				<attribute name="attribbt12" value="${canvas.url_carte12}" type="string" />
+				<method name="changecarte12">
+				canvas.setAttribute('url_carte',this.attribbt12);
+				Debug.write(this.attribbt12);
+				</method>
+			</button>
+			<button text="+ 18" onclick="changecarte18()">
+				<attribute name="attribbt18" value="${canvas.url_carte18}" type="string" />
+				<method name="changecarte18">
+				canvas.setAttribute('url_carte',this.attribbt18);
+				Debug.write(this.attribbt18);
+				</method>
+			</button>
+			<button text="+ 24" onclick="changecarte24()">
+				<attribute name="attribbt24" value="${canvas.url_carte24}" type="string" />
+				<method name="changecarte24">
+				canvas.setAttribute('url_carte',this.attribbt24);
+				Debug.write(this.attribbt24);
+				</method>
+			</button>
+			<button text="+ 30" onclick="changecarte30()">
+				<attribute name="attribbt30" value="${canvas.url_carte30}" type="string" />
+				<method name="changecarte30">
+				canvas.setAttribute('url_carte',this.attribbt30);
+				Debug.write(this.attribbt30);
+				</method>
+			</button>
+			<button text="+ 36" onclick="changecarte36()">
+				<attribute name="attribbt36" value="${canvas.url_carte36}" type="string" />
+				<method name="changecarte36">
+				canvas.setAttribute('url_carte',this.attribbt36);
+				Debug.write(this.attribbt36);
+				</method>
+			</button>
+			<button text="+ 42" onclick="changecarte42()">
+				<attribute name="attribbt42" value="${canvas.url_carte42}" type="string" />
+				<method name="changecarte42">
+				canvas.setAttribute('url_carte',this.attribbt42);
+				Debug.write(this.attribbt42);
+				</method>
+			</button>
+			<button text="+ 48" onclick="changecarte48()">
+				<attribute name="attribbt48" value="${canvas.url_carte48}" type="string" />
+				<method name="changecarte48">
+				canvas.setAttribute('url_carte',this.attribbt48);
+				Debug.write(this.attribbt48);
+				</method>
+			</button>
+			</view>
+		</tabpane>
+	</tabs>
+	</view>
+	<!-- </window> -->
+	<!-- FIN DE LA FENETRE DU NAVIGATEUR -->
+</view>
+
+
+  
+ 
+  
+</canvas>
